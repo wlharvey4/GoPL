@@ -3,8 +3,8 @@
 #+title:Go Programming Language
 #+subtitle:{{{version}}} {{{date}}}
 #+author:LOLH
-#+date:2021-09-26 22:32
-#+macro:version Version 0.0.1
+#+date:2021-09-26 23:51
+#+macro:version Version 0.0.2
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -252,6 +252,65 @@ project; the Go source itself contains the build specification.
 - [[https://golang.org/pkg][Go Packages Source Code]]
 
 * Tutorial
+The examples here,  and indeed in the  whole book, are aimed at  tasks that you
+might have to  do in the real world.   In this chapter we’ll try to  give you a
+taste of  the diversity of  programs that one might  write in Go,  ranging from
+simple file processing and a bit of graphics to concurrent Internet clients and
+servers.
+
+When you’re learning  a new language, there’s a natural  tendency to write code
+as you would have written it in a  language you already know.  Be aware of this
+bias  as you  learn Go  and try  to avoid  it.  We’ve  tried to  illustrate and
+explain how  to write  good Go, so  use the  code here as  a guide  when you’re
+writing your own.
+
+** Hello World
+
+#+caption:gopl.io/ch1/helloworld.go
+#+name:HelloWorld
+#+begin_src go :tangle ./resources/src/ch1/helloworld.go :mkdirp yes :comments both
+  package main
+
+  import "fmt"
+
+  func main() {
+	  fmt.Println("Hello, world!")
+  }
+#+end_src
+
+#+texinfo:@heading Go is a Compiled Language
+#+texinfo:@subheading The Go Toolchain and Compilation
+#+cindex:Go toolchain
+#+cindex:@command{go} command
+
+The Go toolchain  converts a source program  and the things it  depends on into
+instructions in  the native machine  language of  a computer.  These  tools are
+accessed through a single command called ~go~ that has a number of subcommands.
+
+#+texinfo:@subheading @command{go run}
+#+cindex:@command{go run}
+
+The simplest of  these subcommands is ~go run~, which  compiles the source code
+from  one  or more  source  files  whose names  end  in  ~.go~, links  it  with
+libraries, then runs the resulting executable file.
+
+: $ go run helloworld.go
+: => Hello, World!
+
+#+texinfo:@subheading @command{go build}
+#+cindex:@command{go build}
+
+If the program is  more than a one-shot experiment, it’s  likely that you would
+want to  compile it once and  save the compiled  result for later use.  That is
+done with ~go build~:
+
+: $ go build helloworld.go
+: $ ./helloworld
+: => Hello, World!
+
+This creates  an executable binary file  called ~helloworld~ that can  be run any
+time without further processing.
+
 * Program Structure
 * Basic Data Types
 * Composite Types
