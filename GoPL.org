@@ -3,8 +3,8 @@
 #+title:Go Programming Language
 #+subtitle:{{{version}}} {{{date}}}
 #+author:LOLH
-#+date:2021-09-27 08:24
-#+macro:version Version 0.0.3
+#+date:2021-09-27 11:29
+#+macro:version Version 0.0.4
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -418,6 +418,376 @@ A related tool, ~goimports~, additionally  manages the insertion and removal of
 but you can obtain it with this command:
 
 : $ go get golang.org/x/tools/cmd/goimports
+
+** Command-Line Arguments
+
+#+texinfo:@heading @command{os.Args} Variable
+#+vindex:os.Args
+#+vindex:Args
+#+vindex:os package
+
+The  ~os~ package  provides functions  and other  values for  dealing with  the
+operating system in a platform-independent fashion.
+
+*Command-line arguments* are available to a  program in a variable named ~Args~
+that is  part of  the ~os~  package; thus  its name  anywhere outside  the ~os~
+package is ~os.Args~.
+
+#+texinfo:@subheading Slices
+
+The variable ~os.Args~ is a /slice/ of strings.  @@texinfo:@dfn{Slices}@@ are a
+fundamental notion in Go, and we’ll talk  a lot more about them soon.  For now,
+think of  a slice  as
+- a  dynamically  sized  sequence  ~s~ of  =array=  elements  where  individual
+  elements can be accessed as ~s[i]~ and a contiguous subsequence as ~s[m:n]~.
+- The number of elements is given by ~len(s)~.
+- As in  most other programming  languages, all  indexing in Go  uses half-open
+  intervals  that include  the first  index but  exclude the  last, because  it
+  simplifies logic.
+- For example, the slice  ~s[m:n]~, where =0 ≤ m ≤ n  ≤ len(s)=, contains =n-m=
+  elements.
+
+
+#+texinfo:@subheading Elements of Slice
+1. The first  element of ~os.Args~, ~os.Args[0]~, is the  name of the *command*
+   itself;
+
+2. the  other elements are the  *arguments* that were presented  to the program
+   when it started execution.
+
+3.  A  *slice expression* of  the form ~s[m:n]~ yields  a slice that  refers to
+   elements =m= through =n-1=, so the elements we need for our next example are
+   those in the slice ~os.Args[1:len(os.Args)]~.  If  =m= or =n= is omitted, it
+   defaults to  0 or ~len(s)~  respectively, so  we can abbreviate  the desired
+   slice as ~os.Args[1:]~.
+
+*** Echo1
+Here’s  an  implementation  of  the  Unix  ~echo~  command,  which  prints  its
+command-line arguments  on a single line.   It imports two packages,  which are
+given as a parenthesized list  rather than as individual ~import~ declarations.
+Either form is legal,  but conventionally the list form is  used.  The order of
+imports  doesn’t  matter;  the  ~gofmt~  tool  sorts  the  package  names  into
+alphabetical order.
+
+#+caption:gopl.io/ch1/echo1
+#+name:Echo1
+#+begin_src go :tangle ./resources/src/ch1/echo1.go :mkdirp yes :comments both
+  // Echo1 prints its command-line arguments.
+  package main
+
+  import (
+	  "fmt"
+	  "os"
+  )
+
+  func main() {
+	  var s, sep string
+	  for i := 1; i < len(os.Args); i++ {
+		  s += sep + os.Args[i]
+		  sep = " "
+	  }
+	  fmt.Println(s)
+  }
+#+end_src
+
+The ~echo~ program could have printed its output in a loop one piece at a time,
+but this version instead builds up a string by repeatedly appending new text to
+the end.  The string ~s~ starts life  empty, that is, with value =""=, and each
+trip through the loop adds some text  to it; after the first iteration, a space
+is also inserted so that when the  loop is finished, there is one space between
+each argument.  This is a quadratic process  that could be costly if the number
+of arguments is large, but for ~echo~, that’s unlikely.  We’ll show a number of
+improved versions of  ~echo~ in this chapter  and the next that  will deal with
+any real inefficiency.
+
+#+texinfo:@subheading Comments
+Comments begin  with =//=.   All text from  a =//=  to the end  of the  line is
+commentary for programmers  and is ignored by the compiler.   By convention, we
+describe  each  package  in  a  comment  immediately  preceding  its  ~package~
+declaration;  for a  ~main~  package,  this comment  is  one  or more  complete
+sentences that describe the program as a whole.
+
+#+texinfo:@subheading @command{var} Declaration and Initialization
+#+cindex:var declaration
+#+cindex:initialization
+#+cindex:explicit initialization
+#+cindex:implicit initialization
+#+cindex:zero value
+The ~var~ declaration  declares two variables ~s~ and ~sep~,  of type =string=.
+
+- A variable  can be  *initialized* as  part of  its declaration.
+- If it is not *explicitly initialized*,  it is *implicitly initialized* to the
+  *zero value* for its type, which is
+  - 0 for numeric types and
+  - the empty string =""= for strings.
+- Thus in this example, the declaration implicitly initializes =s= and =sep= to
+  empty strings.
+
+#+texinfo:@subheading Short Variable Declaration
+#+cindex:short variable declaration
+The *loop index variable* ~i~ is declared  in the first part of the =for= loop.
+The =:==  symbol is part  of a *short  variable declaration*, a  statement that
+declares one  or more variables and  gives them appropriate types  based on the
+initializer values.
+
+#+texinfo:@subheading Arithmetic and Logical Operators---Concatenation Operator
+#+cindex:operators
+#+cindex:concatenation
+For  numbers, Go  provides the  usual arithmetic  and logical  operators.  When
+applied to strings,  however, the =+= operator concatenates the  values, so the
+expression
+
+: sep + os.Args[i]
+
+represents  the *concatenation*  of  the strings  ~sep~  and ~os.Args[i]~.
+
+#+texinfo:@subheading Assignment Operators---Assignment Statements
+#+cindex:assignment statement
+The  statement we  used  in  the program,
+
+: s += sep + os.Args[i]
+
+is an *assignment statement* that concatenates  the old value of ~s~ with ~sep~
+and ~os.Args[i]~ and assigns it back to ~s~; it is equivalent to
+
+: s = s + sep + os.Args[i]
+
+#+cindex:assignment operator
+The  operator =+==  is an  *assignment  operator*.  Each  arithmetic and  logical
+operator like =+= or =*= has a corresponding assignment operator.
+
+#+texinfo:@subheading Increment and Decrement Statements
+#+cindex:increment statement
+#+cindex:decrement statement
+The *increment  statement* =i++=  adds 1 to  ~i~; it’s equivalent  to ~i  += 1~
+which is in turn equivalent to ~i = i + 1~.  There’s a corresponding *decrement
+statement* =i--= that subtracts 1.
+
+*NOTE:* These are  *statements*, not expressions as they are  in most langauges
+in the =C= family, ~j = i++~ is  illegal and they are postfil only, so =--i= is
+not legal either.
+
+#+texinfo:@heading The @command{for} Loop
+#+cindex:for loop
+The ~for~ loop is  the *only* loop statement in Go.  It has  a number of forms,
+one of which is illustrated here:
+
+#+caption:For Loop
+#+name:ForLoop
+#+begin_src go
+  for initialization; condition; post {
+	  // zero or more statements
+  }
+#+end_src
+
+,*Parentheses* are never used around the three components of a ~for~ loop.  The
+,*braces* are  mandatory, however, and  the opening brace  must be on  the same
+line as the post statement.
+
+- initialization statement :: The optional *initialization statement* is
+  executed before the loop starts.  If it  is present,  it must  be  a simple
+  statement,  that is,  a short  variable declaration, an  increment or  assignment statement, or  a function  call.
+- condition  statement ::  The  *condition*  is a  boolean  expression that  is
+  evaluated at the beginning of each iteration  of the loop; if it evaluates to
+  =true=, the statements controlled by the loop are executed.
+- post statement   :: The *post  statement* is executed  after the body  of the
+  loop, then the condition is evaluated again. The loop ends when the condition
+  becomes false.
+
+Any of these parts may be omitted.   If there is no initialization and no post,
+the semicolons may also be omitted:
+
+#+cindex:while loop
+#+caption:While Loop
+#+name:WhileLoop
+#+begin_src go
+  // a traditional "while" loop
+  for condition {
+	  // ...
+  }
+#+end_src
+
+If the condition is omitted entirely in any of these forms, for example in
+
+#+cindex:infinite loop
+#+caption:Infinite Loop
+#+name:InfiniteLoop
+#+begin_src go
+  // a traditional infinite loop
+  for {
+	  // ...
+  }
+#+end_src
+
+#+cindex:break statement
+#+cindex:return statement
+the loop is infinite, though loops of this form may be terminated in some other
+way, like a ~break~ or ~return~ statement.
+
+*** Echo2
+
+#+texinfo:@heading Range Loop
+#+cindex:range operator
+Another form of  the ~for~ loop iterates  over a *range of values*  from a data
+type like  a string  or a  slice.  To  illustrate, here’s  a second  version of
+~echo~:
+
+#+caption:gopl.io/ch1/echo2
+#+name:Echo2
+#+begin_src go :tangle ./resources/src/ch1/echo2.go :mkdirp yes :comments both
+  // Echo2 prints its command-line arguments. package main
+  package main
+
+  import (
+	  "fmt"
+	  "os"
+  )
+
+  func main() {
+	  s, sep := "", ""
+	  for _, arg := range os.Args[1:] {
+		  s += sep + arg
+		  sep = " "
+	  }
+	  fmt.Println(s)
+  }
+#+end_src
+
+In each iteration of the loop, ~range~ produces a pair of values: the index and
+the value  of the element at  that index.  In  this example, we don’t  need the
+index,  but the  syntax of  a range  loop  requires that  if we  deal with  the
+element, we  must deal with  the index  too.  One idea  would be to  assign the
+index to an obviously temporary variable  like ~temp~ and ignore its value, but
+Go  does  not  permit  unused  local  variables, so  this  would  result  in  a
+compilation error.
+
+#+texinfo:@subheading The Blank Identifier
+#+cindex:blank identifier
+The solution  is to use  the @@texinfo:@dfn{blank identifier}@@, whose  name is
+=_= (that is, an underscore).  The blank identifier may be used whenever syntax
+requires a variable name but program logic does not, for instance to discard an
+unwanted  loop  index  when  we  require  only  the  element  value.   Most  Go
+programmers would  likely use ~range~  and =_= to  write the ~echo~  program as
+above, since  the indexing over ~os.Args~  is implicit, not explicit,  and thus
+easier to get right.
+
+#+texinfo:@subheading Declaring String Variables
+This version of the program uses  a *short variable declaration* to declare and
+initialize ~s~ and ~sep~, but we could equally well have declared the variables
+separately.  There are several ways to declare a string variable; these are all
+equivalent:
+
+#+begin_src go
+s := ""
+var s string
+var s = ""
+var s string = ""
+#+end_src
+
+Why should  you prefer one  form to another?
+1. The  first form, a  short variable declaration, is the  most compact, but it
+   may be used only  within a function, not  for   package-level  variables.
+2.  The second  form relies  on default  initialization to  the zero  value for
+   strings, which is "".
+3. The third form is rarely used except when declaring multiple variables.
+4. The  fourth form is explicit  about the variable’s type,  which is redundant
+   when it  is the same  as that  of the initial  value but necessary  in other
+   cases where they are not of the same type.
+
+#+begin_cartouche
+In practice, you should generally use one of the first two forms, with explicit
+initialization  to  say  that  the  initial value  is  important  and  implicit
+initialization to say that the initial value doesn’t matter.
+#+end_cartouche
+
+*** Echo3
+Each time  around the loop, the  string ~s~ gets completely  new contents.  The
+=+== statement  makes a  new string  by concatenating the  old string,  a space
+character, and the next argument, then assigns  the new string to ~s~.  The old
+contents of ~s~ are no longer in  use, so they will be garbage-collected in due
+course.
+
+If the amount of  data involved is large, this could be  costly.  A simpler and
+more efficient solution would be to  use the ~Join~ function from the ~strings~
+package:
+#+cindex:strings.Join function
+
+#+caption:gopl.io/ch1/echo3
+#+name:Echo3
+#+begin_src go :tangle ./resources/src/ch1/echo3.go :mkdirp yes :comments both
+  // Print command-line arguments using strings.Join
+  package main
+
+  import (
+	  "fmt"
+	  "os"
+	  "strings"
+  )
+
+  func main() {
+	  fmt.Println(strings.Join(os.Args[1:], " "))
+  }
+#+end_src
+
+Finally, if we don’t care about format but just want to see the values, perhaps
+for debugging, we can let ~Println~ format the results for us:
+
+: fmt.Println(os.Args[1:])
+
+The output of this  statement is like what we would  get from ~strings.Join~, but
+with surrounding brackets.  Any slice may be printed this way.
+
+*** Exercises
+
+**** Exercise 1.1
+Modify the ~echo~  program to also print ~os.Args[0]~, the  name of the command
+that invoked it.
+
+#+caption:Ch1 Exercise 1.1
+#+name:Exercise1.1
+#+begin_src go :tangle ./resources/src/ch1/exercise1.1.go :mkdirp yes :comments both
+  // Echo the name of the command that invokes this package.
+  package main
+
+  import (
+	  "fmt"
+	  "os"
+	  "strings"
+   )
+
+  func main() {
+	    fmt.Println(strings.Join(os.Args[0:], " "))
+  }
+#+end_src
+
+**** Exercise 1.2
+Modify the ~echo~ program to print the  index and value of each of its arguments,
+one per line.
+
+#+caption:Ch1 Exercise 1.2
+#+name:Exercise1.2
+#+begin_src go :tangle ./resources/src/ch1/exercise1.2.go :mkdirp yes :comments both
+  // Echo the command-line arguments, and print the index and value of each argument
+  // on a separate line
+  package main
+
+  import (
+	  "fmt"
+	  "os"
+  )
+
+  func main() {
+	  for index, value := range os.Args[0:] {
+		  fmt.Println(index, value)
+	  }
+  }
+#+end_src
+
+**** Exercise 1.3
+Experiment to  measure the difference  in running time between  our potentially
+inefficient  versions  and the  one  that  uses ~strings.Join~.   (Section  1.6
+illustrates part  of the ~time~  package, and Section  11.4 shows how  to write
+benchmark tests for systematic performance evaluation.)
 
 * Program Structure
 * Basic Data Types
