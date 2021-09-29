@@ -3,8 +3,8 @@
 #+title:Go Programming Language
 #+subtitle:{{{version}}} {{{date}}}
 #+author:LOLH
-#+date:2021-09-27 11:29
-#+macro:version Version 0.0.4
+#+date:2021-09-28 21:50
+#+macro:version Version 0.0.6
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -268,7 +268,7 @@ writing your own.
 
 #+caption:gopl.io/ch1/helloworld.go
 #+name:HelloWorld
-#+begin_src go :tangle ./resources/src/ch1/helloworld.go :mkdirp yes :comments both
+#+begin_src go :tangle ./resources/src/go/ch1/helloworld.go :mkdirp yes :comments both
   package main
 
   import "fmt"
@@ -277,6 +277,24 @@ writing your own.
 	  fmt.Println("Hello, world!")
   }
 #+end_src
+
+#+caption:lisp/ch1/helloworld.lisp
+#+name:HelloWorldCL
+#+begin_src lisp :tangle ./resources/src/cl/ch1/helloworld.lisp :mkdirp yes :comments both
+  (princ "Hello, world!")
+#+end_src
+
+#+texinfo:@heading Lisp Printing
+- ~write~ is the general entry point to the Lisp printer.
+- ~prin1~ produces output suitable for input to ~read~.
+- ~princ~ is just like ~prin1~ except that the output has no escape characters.
+- The general  rule is  that output from  ~princ~ is intended  to look  good to
+  people, while output from ~prin1~ is intended  to be acceptable to ~read~.
+- ~print~  is just like ~prin1~ except that the printed representation of
+  =object= is preceded by a newline and followed by a space.
+- ~pprint~ is just  like ~print~ except that the trailing  space is omitted and
+  =object= is printed with the  =*print-pretty*= flag non-nil to produce pretty
+  output.
 
 #+texinfo:@heading Go is a Compiled Language
 #+texinfo:@subheading The Go Toolchain and Compilation
@@ -471,7 +489,7 @@ alphabetical order.
 
 #+caption:gopl.io/ch1/echo1
 #+name:Echo1
-#+begin_src go :tangle ./resources/src/ch1/echo1.go :mkdirp yes :comments both
+#+begin_src go :tangle ./resources/src/go/ch1/echo1.go :mkdirp yes :comments both
   // Echo1 prints its command-line arguments.
   package main
 
@@ -634,7 +652,7 @@ type like  a string  or a  slice.  To  illustrate, here’s  a second  version o
 
 #+caption:gopl.io/ch1/echo2
 #+name:Echo2
-#+begin_src go :tangle ./resources/src/ch1/echo2.go :mkdirp yes :comments both
+#+begin_src go :tangle ./resources/src/go/ch1/echo2.go :mkdirp yes :comments both
   // Echo2 prints its command-line arguments. package main
   package main
 
@@ -714,7 +732,7 @@ package:
 
 #+caption:gopl.io/ch1/echo3
 #+name:Echo3
-#+begin_src go :tangle ./resources/src/ch1/echo3.go :mkdirp yes :comments both
+#+begin_src go :tangle ./resources/src/go/ch1/echo3.go :mkdirp yes :comments both
   // Print command-line arguments using strings.Join
   package main
 
@@ -745,7 +763,7 @@ that invoked it.
 
 #+caption:Ch1 Exercise 1.1
 #+name:Exercise1.1
-#+begin_src go :tangle ./resources/src/ch1/exercise1.1.go :mkdirp yes :comments both
+#+begin_src go :tangle ./resources/src/go/ch1/exercise1.1.go :mkdirp yes :comments both
   // Echo the name of the command that invokes this package.
   package main
 
@@ -766,7 +784,7 @@ one per line.
 
 #+caption:Ch1 Exercise 1.2
 #+name:Exercise1.2
-#+begin_src go :tangle ./resources/src/ch1/exercise1.2.go :mkdirp yes :comments both
+#+begin_src go :tangle ./resources/src/go/ch1/exercise1.2.go :mkdirp yes :comments both
   // Echo the command-line arguments, and print the index and value of each argument
   // on a separate line
   package main
