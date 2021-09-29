@@ -3,8 +3,8 @@
 #+title:Go Programming Language
 #+subtitle:{{{version}}} {{{date}}}
 #+author:LOLH
-#+date:2021-09-28 21:50
-#+macro:version Version 0.0.6
+#+date:2021-09-28 23:31
+#+macro:version Version 0.0.7
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -820,6 +820,211 @@ benchmark tests for systematic performance evaluation.)
 * Reflection
 * Low-Leval Programming
 
+* Writing Go in Emacs
+:PROPERTIES:
+:appendix: t
+:Author:   Dominik Honnef
+:END:
+- [[https://honnef.co/posts/2013/03/writing_go_in_emacs/][Writing Go in Emacs]] Article
+
+** Go-Mode
+In this article, I will talk about go-mode for Emacs, its history and features,
+as well as useful extensions to it.
+
+I rewrote the mode  from scratch.  I took special care to build  it on top of a
+solid foundation, making  use of Emacs’s parsing facilities, as  opposed to the
+previous version  of the mode,  which implemented  its own parser.   Apart from
+generally bug-free behavior,  this also allowed building a lot  of functions on
+top of it.
+
+** Obtaining Go-Mode
+Golang no longer distributes ~go-mode~.
+
+You can find ~go-mode~ on [[https://github.com/dominikh/go-mode.el][GitHub]].
+
+** Installing Go-Mode
+Obtain ~go-mode~ from GitHub and generate ~go-mode-load.el~
+
+: M-x update-file-autoloads RET go-mode.el
+
+Put both  ~go-mode.el~ and ~go-mode-load.el~  into a directory of  your choice,
+add it to Emacs’s load paths via
+
+: (add-to-list 'load-path "/place/where/you/put/it")
+: (require 'go-mode-load)
+
+This will install autoload entries and associate ~*.go~ files with ~go-mode~.
+
+** Go-Mode Features
+*** Reading Documentation
+- ~godoc~ function :: you can invoke  the identically named Go tool from within
+  Emacs  and  read package  documentation  in  a view-mode  buffer.  Additional
+  feature: You can tab complete import paths.
+
+- ~gofmt~ :: automatically formats your code to the one true coding style, used
+  by every Go developer.
+
+  In Emacs, there are two ways to use ~gofmt~.
+
+  1. invoke ~gofmt~ manually with the identically named function ~gofmt~, which
+     will patch the current buffer according to ~gofmt~.
+
+  2.   use  a  before-save-hook  to  run  ~gofmt~ every  time  you  save  a  Go
+     buffer.  Enabling that hook is as easy as doing:
+
+     : (add-hook 'before-save-hook 'gofmt-before-save)
+
+ - eldoc    ::    https://github.com/syohex/emacs-go-eldoc    provides    eldoc
+   functionality for ~go-mode~.
+*** Managing Imports
+The new ~go-mode~ has three  functions for working with imports:
+
+- ~go-import-add~ (=C-c   C-a)=  ::  will prompt  you for an import path (again
+  supporting tab completion) and insert it  in the import block, creating it if
+  necessary.   If an  import  already existed  but was  commented,  it will  be
+  uncommented.  If prefixed with =C-u=, it will  ask you for an alias, too.  An
+  annoying procedure  of moving  around and mental  context switching  has just
+  been reduced to a keystroke.
+
+- ~go-remove-unused-imports~ :: Instead  of offering a function  for removing a
+  single import, ~go-mode~  will detect all unused imports and  delete them (or
+  comment them) once you run ~go-remove-unused-imports~.   It is not bound to a
+  key by default,  but you can bind  it yourself if you want  to.  Personally I
+  have bound it to =C-c C-r=:
+
+  : (add-hook 'go-mode-hook (lambda ()
+  :    (local-set-key (kbd "C-c C-r") 'go-remove-unused-imports)))
+
+- ~go-goto-imports~ :: If you  decide you want to look at  your imports or edit
+  them manually, ~go-goto-imports~ will take you to them automatically, placing
+  your cursor after the last import.  It isn’t bound to a key.
+
+*** Navigating Code
+~go-mode~ supports ~beginning-of-defun~ (=C-M-a=) and ~end-of-defun~ (=C-M-e=),
+two  core  Emacs functions  for  navigating  between functions.   Additionally,
+functions  such  as  ~narrow-to-defun~  and  ~mark-defun~  rely  on  these  two
+functions.
+
+You can also use ~Imenu~ to jump to specific function or type declarations.
+
+**** Godef
+~go-mode~  integrates with  ~godef~, an  amazing little  tool written  by Roger
+Peppe.  ~godef~ is able to parse your code, and the code of other packages, and
+the code of the  Go standard library, and can tell you  what exactly the symbol
+you’re looking at means and where it has been defined.
+
+Install ~godef~ with:
+
+: go get code.google.com/p/rog-go/exp/cmd/godef
+
+~go-mode~ makes use of this to  provide the two functions:
+- ~godef-describe~ (=C-c C-d=) :: will tell you what you’re looking at
+- ~godef-jump~ (=C-c  C-j=) ::  will  take you  to its definition.   This works
+  across files,  packages and  into the standard  library, without  needing any
+  tags.  And it has almost no measurable delay.
+
+**** Interacting with the Playground
+~go-mode~ integrates with the Playground.  It offers:
+
+- ~go-play-buffer~
+- ~go-play-region~
+- ~go-download-play~
+
+to send the current buffer or region to the Playground and store a link in your
+kill ring and directly download a paste from the Playground into Emacs.
+
+*** Syntax Checking
+~FlyMake~ is Emacs’s solution to on-the-fly syntax checking.
+
+- ~goflymake~ :: https://github.com/dougm/goflymake
+
+ Doug MacEachern  wrote [[https://github.com/dougm/goflymake][goflymake]], which  consists of  a small Go  binary and
+ some elisp  to integrate it with  Emacs.  Because Go compiles  blazingly fast,
+ using ~goflymake~  doesn’t cause any  performance penalties.  Personally  I am
+ letting ~FlyMake~ compile  my Go buffers every time I  insert a newline.  More
+ conservative settings  would compile after a  certain amount of idle  time, or
+ when saving the buffer.
+
+- ~flymakego~ :: http://marmalade-repo.org/packages/flymake-go
+
+  a more lightweight solution  that only uses ~gofmt~ and as  such is only able
+  to catch syntax errors.  Unlike ~goflymake~,  however, it does not require an
+  additional executable.
+
+- ~flycheck~ ::  a modern replacement  for ~flymake~, which comes with built-in
+  support for  Go.  In  addition to using  ~go build~ or  ~gofmt~, it  also has
+  support for ~go vet~, ~golint~ and ~errcheck~.
+
+*** Autocompletion
+~gocode~, written by nsf, provides the kind of autocompletion.
+
+Personally I recommend trying ~company-mode~ first.
+
+- gopls  ::  https://github.com/golang/tools/tree/master/gopls the  official Go
+  [[https://langserver.org][language server]]  developed by the Go  team.  It provides IDE  features to any
+  LSP-compatible editor.
+
+  - https://github.com/golang/tools/blob/master/gopls/doc/emacs.md
+
+  To use  ~gopls~ with  Emacs, you  must first install  the ~gopls~  binary and
+  ensure that the  directory containing the resulting binary  (either =$(go env
+  GOBIN)= or  =$(go env  GOPATH)/bin)= is  in your PATH.   To use  ~gopls~ with
+  Emacs,  you  must first  install  the  ~gopls~  binary  and ensure  that  the
+  directory containing the resulting binary (either =$(go env GOBIN)= or =$(go
+  env GOPATH)/bin)= is in your PATH.
+
+*** Snippets
+One of the more popular implementations of snippets for Emacs is YASnippet, and
+it is YASnippet that I wrote a [[https://github.com/dominikh/yasnippet-go/tree/master/go-mode][small number of Go snippets for]].
+
+- https://github.com/dominikh/yasnippet-go
+
+*** Finding unchecked errors with go-errcheck
+- ~go-errcheck~    ::     https://github.com/dominikh/go-errcheck.el offers the
+  ~go-errcheck~ function, which will run  ~errcheck~ on the current package and
+  report errors in a compilation buffer.
+
+- ~errcheck~  :: https://github.com/kisielk/errcheck  a tool  written by  Kamil
+  Kisiel for finding and reporting unchecked errors in your Go code.
+
+  : go get -u github.com/kisielk/errcheck
+
+  : errcheck github.com/kisielk/errcheck/testdata
+  : errcheck ./...
+  : errcheck all
+
+  ~go-errcheck.el~   integrates   ~errcheck~   with  Emacs   by   providing   a
+  ~go-errcheck~ command and customizable  variables to automatically pass flags
+  to ~errcheck~.
+
+*** Go Language Server
+~Gopls~  is  the  official  language  server  protocol  (~lsp~)  implementation
+provided by the  Go team.  It is  intended to replace the  existing third party
+tools  for code  formatting  (~gofmt~), automatic  imports (~goimports~),  code
+navigation  (~godef/guru~),  type  and function  descriptions  (~godoc/godef~),
+error  checking,  auto  completion   (~gocode~),  variable  and  type  renaming
+(~rename~), and more.  Once ~gopls~ is stable the older tools will no longer be
+supported.
+
+~Gopls~ is a supported backend for ~lsp-mode~. It will be used automatically by
+~lsp-mode~ if ~gopls~ is  found in your =PATH=.  You can  install ~gopls~ via:
+
+: go get golang.org/x/tools/gopls@latest
+
+To enable ~lsp-mode~ for go buffers:
+
+: (add-hook 'go-mode-hook 'lsp-deferred)
+
+** Go Tools
+- [[https://github.com/dominikh/go-tools][go-tools]]
+- Staticcheck ::
+
+  ~Staticcheck~ is a  state of the art linter for  the Go programming language.
+  Using  static  analysis,  it  finds   bugs  and  performance  issues,  offers
+  simplifications, and enforces style rules.
+
+  - Staticcheck Website :: https://staticcheck.io/docs/
+
 * Build Tools
 :PROPERTIES:
 :appendix: t
