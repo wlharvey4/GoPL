@@ -3,8 +3,8 @@
 #+title:Go Programming Language
 #+subtitle:{{{version}}} {{{date}}}
 #+author:LOLH
-#+date:2021-09-28 23:31
-#+macro:version Version 0.0.7
+#+date:2021-10-03 23:03
+#+macro:version Version 0.0.8
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -489,8 +489,9 @@ alphabetical order.
 
 #+caption:gopl.io/ch1/echo1
 #+name:Echo1
-#+begin_src go :tangle ./resources/src/go/ch1/echo1.go :mkdirp yes :comments both
-  // Echo1 prints its command-line arguments.
+#+begin_src go :tangle ./resources/src/go/ch1/echo1.go :mkdirp yes
+
+  /* Echo1 prints its command-line arguments. */
   package main
 
   import (
@@ -641,6 +642,45 @@ If the condition is omitted entirely in any of these forms, for example in
 #+cindex:return statement
 the loop is infinite, though loops of this form may be terminated in some other
 way, like a ~break~ or ~return~ statement.
+
+**** CL Echo1
+CCL can be run directly from a terminal prompt.  CCL needs to know where the
+~ccl~ directory is, and uses the environment variable =CCL_DEFAULT_DIRECTORY=
+to locate it, i.e.
+: export CCL_DEFAULT_DIRECTORY=/path/to/ccl
+A  script named  =$CCL_DEFAULT_DIRECTORY/scripts/ccl= can  be placed  into your
+path whose purpose is to make sure  this default directory is properly set, and
+to invoke the ~ccl~ binary.
+
+CCL has  a number of command-line  options, including =-e, --eval=,  which will
+execute some  code.  Any arguments  following the pseudo-argument =--=  are not
+processed,   and   are    made   available   to   Lisp   as    the   value   of
+=*unprocessed-command-line-arguments*=.
+
+The easiest way to create a command-line  script is to run a shell script which
+~exec~'s a call  to the ~ccl~ binary  with one or more  =--eval= arguments (the
+last  of  which  should  be  the   quit  command  ~(quit)~),  followed  by  the
+pseudo-element =--= and the command-line arguments =$@=.
+
+#+caption:cl/ch1/echo1
+#+name:CLEcho1
+#+header: :shebang "#!/usr/bin/env bash"
+#+header: :cmdline a b c
+#+header: :results output
+#+begin_src sh :tangle ./resources/src/cl/ch1/echo1.sh :mkdirp yes
+  exec ccl --eval '(let ((args *unprocessed-command-line-arguments*))
+		     (pprint args)
+		     (do ((a args (cdr a))
+			  (s "" (concatenate '\''string s (car a))))
+			((null a) (pprint s))))' \
+	   --eval '(quit)' \
+	   -- "$@"
+#+end_src
+
+#+RESULTS: CLEcho1
+: 
+: ("a" "b" "c")
+: "abc"
 
 *** Echo2
 
