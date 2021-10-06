@@ -3,8 +3,8 @@
 #+title:Go Programming Language
 #+subtitle:{{{version}}} {{{date}}}
 #+author:LOLH
-#+date:2021-10-03 23:03
-#+macro:version Version 0.0.8
+#+date:2021-10-05 23:21
+#+macro:version Version 0.0.9
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -662,25 +662,58 @@ The easiest way to create a command-line  script is to run a shell script which
 last  of  which  should  be  the   quit  command  ~(quit)~),  followed  by  the
 pseudo-element =--= and the command-line arguments =$@=.
 
+Common Lisp has three forms of the ~do~ structured iteration command:
+1. ~do~
+2. ~dolist~
+3. ~dotimes~
+
+two ~loop~ statements:
+4. [@4] simple loop
+5. extended loop
+
+and several ~prog~ statements:
+6. [@6] prog
+7. prog1
+8. prog2
+9. progn
+
+This implementation uses ~dotimes~, which is  similar to the Go version using a
+~for~-loop that loops  over the length of the  command-line arguments beginning
+at zero  through =length  - 1=.   It also  implements the  same string-building
+construct using string concatenation, and  the ~sep~ variable that is initially
+empty, and then is set to a space at the end of the first iteration.
 #+caption:cl/ch1/echo1
-#+name:CLEcho1
+#+name:CL-Echo1
 #+header: :shebang "#!/usr/bin/env bash"
 #+header: :cmdline a b c
 #+header: :results output
 #+begin_src sh :tangle ./resources/src/cl/ch1/echo1.sh :mkdirp yes
-  exec ccl --eval '(let ((args *unprocessed-command-line-arguments*))
-		     (pprint args)
-		     (do ((a args (cdr a))
-			  (s "" (concatenate '\''string s (car a))))
-			((null a) (pprint s))))' \
+  exec ccl --eval '
+       (let ((l *unprocessed-command-line-arguments*) s sep)
+	  (dotimes (i (length l) (prin1 s))
+		   (setq s (concatenate (quote string) s sep (string (elt l i))))
+		   (setq sep " ")))' \
 	   --eval '(quit)' \
 	   -- "$@"
 #+end_src
 
-#+RESULTS: CLEcho1
-: 
-: ("a" "b" "c")
-: "abc"
+#+RESULTS: CL-Echo1
+: "a b c"
+
+# #+caption:cl/ch1/echo1
+# #+name:CLEcho1
+# #+header: :shebang "#!/usr/bin/env bash"
+# #+header: :cmdline a b c
+# #+header: :results output
+# #+begin_src sh :tangle ./resources/src/cl/ch1/echo1.sh :mkdirp yes
+#   exec ccl --eval '(let ((args *unprocessed-command-line-arguments*))
+# 		     (pprint args)
+# 		     (do ((a args (cdr a))
+# 			  (s "" (concatenate '\''string s (car a))))
+# 			((null a) (pprint s))))' \
+# 	   --eval '(quit)' \
+# 	   -- "$@"
+# #+end_src
 
 *** Echo2
 
