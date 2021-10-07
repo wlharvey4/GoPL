@@ -3,8 +3,8 @@
 #+title:Go Programming Language
 #+subtitle:{{{version}}} {{{date}}}
 #+author:LOLH
-#+date:2021-10-05 23:21
-#+macro:version Version 0.0.9
+#+date:2021-10-07 00:12
+#+macro:version Version 0.0.10
 #+macro:upload-date (eval (current-time-string))
 #+bucket:pinecone-forest.com
 
@@ -790,6 +790,34 @@ In practice, you should generally use one of the first two forms, with explicit
 initialization  to  say  that  the  initial value  is  important  and  implicit
 initialization to say that the initial value doesn’t matter.
 #+end_cartouche
+
+**** CL Echo2
+In this implementation,  a ~do*~-loop is used, and no  body is actually needed,
+because all of the processing occurs in the variable lists.  It is similar to a
+~range~  function because  multiple variables  are possible,  and the  function
+iterates  over a  list.   On the  first  iteration, each  of  the variables  is
+established  with  an  initial  value.   ~arg~  is  made  to  be  the  list  of
+command-line  arguments,  ~sep~ is  initially  the  empty  string, and  ~s~  is
+initially the  empty string also.  On  the next loop,  ~arg~ is made to  be the
+list of all but the first element, ~sep~ is made to be the single space string,
+and ~s~ splices  together the string so  far, the current string,  ~s~, and the
+first element of ~arg~.
+
+#+caption:cl/ch1/echo2
+#+name:CL-Echo2
+#+header: :shebang "#!/usr/bin/env bash"
+#+header: :cmdline a b c
+#+begin_src sh :tangle ./resources/src/cl/ch1/echo2.sh :results output
+  exec ccl --eval '
+    (do* ((arg *unprocessed-command-line-arguments* (cdr arg)) (sep "" " ") (s (car arg) (concatenate (quote string) s sep (car arg))))
+	((= (length arg) 1) (pprint s)))' \
+    --eval '(quit)' \
+    -- "$@"
+#+end_src
+
+#+RESULTS: CL-Echo2
+: 
+: "a b c"
 
 *** Echo3
 Each time  around the loop, the  string ~s~ gets completely  new contents.  The
